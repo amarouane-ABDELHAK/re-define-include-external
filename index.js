@@ -4,6 +4,7 @@ var _ = require('lodash')
   , path = require('path')
   , async = require('async')
   , Module = require('re-define-module')
+  , debug = require('debug')('re-define:custom:include-external')
 
 module.exports = function(config) {
   return function(globalConfig, writer) {
@@ -28,7 +29,7 @@ module.exports = function(config) {
           return Module({name: d, path: d, requiredAs: d})
         })
 
-        file.stopProcessing = external.stopProcessing === undefined || !external.stopProcessing? false : true
+        file.stopProcessing = external.stopProcessing === undefined || !external.stopProcessing ? false : true
         file.wrap = false
       }
 
@@ -39,9 +40,11 @@ module.exports = function(config) {
       }
 
       if(!!externalLocation) {
+        debug("Reading file from external location:", file.requiredAs, externalLocation)
         end(externalLocation)
         return
       }
+
       async.detect(likelyLocations(), fs.exists, function(p) {
         if(_.some(descriptors, function(d) { return (p && p.indexOf(d) > -1) })) {
           fs.readFile(p, function(err, content) {
@@ -61,6 +64,8 @@ module.exports = function(config) {
           next()
           return
         }
+
+        debug("Found it:", file.requiredAs, loc)
 
         file.path = loc
         file.base = path.dirname(loc)
