@@ -1,0 +1,21 @@
+{
+  "name": "re-define-include-external",
+  "version": "0.0.0",
+  "description": "Re-define plugins for attaching and resolving external dependencies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "re-define",
+    "plugin",
+    "include"
+  ],
+  "author": "Damian Baar <damian.baar@gmail.com> (http://github.com/damianbaar)",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "through2": "^0.6.1",
+    "async": "^0.9.0"
+  }
+}
