@@ -19,7 +19,7 @@ module.exports = function(config) {
         , descriptors = config.descriptors
         , externalLocation
 
-      var external = config.external[ file.requiredAs ]
+      var external = config.external && config.external[ file.requiredAs ]
 
       if(_.isString(external)) externalLocation = external
       if(_.isObject(external)) {
