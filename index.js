@@ -3,7 +3,7 @@ var _ = require('lodash')
   , fs = require('fs')
   , path = require('path')
   , async = require('async')
-  , Module = require('../module')
+  , Module = require('re-define-module')
 
 module.exports = function(config) {
   return function(globalConfig, writer) {
