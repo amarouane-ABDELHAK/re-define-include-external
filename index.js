@@ -84,14 +84,22 @@ module.exports = function(config) {
               , _locations
               , _ref = file.reference
 
-            _descriptors = _.map(descriptors, function(desc) {
-              return path.resolve(d, _ref, desc)
-            })
+            _descriptors = _(descriptors)
+              .map(function(desc) {
+                return [ path.resolve(d, _ref, desc)
+                       , path.resolve(file.base, _ref, desc) ]
+              })
+              .flatten()
+              .compact()
+              .value()
 
             _locations = [ path.resolve(d, appendJS(_ref))
-                         , path.resolve(d, _ref, appendJS(_ref)) ]
+                         , path.resolve(d, _ref, appendJS(_ref)) 
+                         , path.resolve(file.base, d, appendJS(_ref))
+                         , path.resolve(file.base, d, _ref, appendJS(_ref)) 
+            ]
 
-            return (_descriptors || []).concat(_locations || [])
+            return _.compact((_descriptors || []).concat(_locations || []))
 
             function appendJS(name) { return name + '.js' }
           })
