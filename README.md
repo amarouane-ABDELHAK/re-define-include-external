@@ -7,13 +7,9 @@ Usage:
 
 ```
 var findExternal = require('re-define-include-external')({
-    external     : {"lodash":{"path": "./vendor/lodash.js", "deps": ["jquery"]}}
+    external     : {"lodash":"./vendor/lodash.js"}
   , discoverable : ['node_modules', 'bower_component']
   , descriptors  : ['package.json', 'bower.json']
   , skip         : ['module_name']
   })
 ```
-
-* external
-
-Value could be just a string, like `{"lodash":"path"}`

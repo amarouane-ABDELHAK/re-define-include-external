@@ -16,21 +16,23 @@ module.exports = function(config) {
       }
 
       var self = this
-        , discoverable = config.discoverable
-        , descriptors = config.descriptors
+        , discoverable = config.discoverable || ['node_modules', 'bower_components']
+        , descriptors = config.descriptors || ['package.json', 'bower.json']
         , externalLocation
 
       var external = config.external && config.external[ file.requiredAs ]
 
       if(_.isString(external)) externalLocation = external
       if(_.isObject(external)) {
-        externalLocation = external.path
-        file.deps = _.map(external.deps, function(d) {
-          return Module({name: d, path: d, requiredAs: d})
-        })
+        //TODO reconsider, not sure if it would be needed at all
 
-        file.stopProcessing = external.stopProcessing === undefined || !external.stopProcessing ? false : true
-        file.wrap = false
+        // externalLocation = external.path
+        //
+        // file.dependencies = _.map(external.deps, function(d) {
+        //   return Module({name: d, path: d, requiredAs: d})
+        // })
+        //
+        // file.stopProcessing = external.stopProcessing === undefined || !external.stopProcessing ? false : true
       }
 
       if(config.skip && config.skip.indexOf(file.name) > -1) {
@@ -69,8 +71,11 @@ module.exports = function(config) {
 
         file.path = loc
         file.base = path.dirname(loc)
-        file.parent = null
         file.stopProcessing = false
+        file.pending = true
+
+        //TODO to be investigated!!!
+        // file.exists = true
 
         writer.write(file)
 
@@ -82,7 +87,7 @@ module.exports = function(config) {
           .map(function(d) {
             var _descriptors 
               , _locations
-              , _ref = file.reference
+              , _ref = file.requiredAs
 
             _descriptors = _(descriptors)
               .map(function(desc) {
