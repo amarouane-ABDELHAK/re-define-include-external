@@ -63,7 +63,6 @@ module.exports = function(config) {
         file.base = path.dirname(loc)
 
         file.stopProcessing = false
-        file.exists = true
         file.pending = true
 
         writer.write(file)
