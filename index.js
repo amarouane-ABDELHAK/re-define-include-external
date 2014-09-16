@@ -23,17 +23,6 @@ module.exports = function(config) {
       var external = config.external && config.external[ file.requiredAs ]
 
       if(_.isString(external)) externalLocation = external
-      if(_.isObject(external)) {
-        //TODO reconsider, not sure if it would be needed at all
-
-        // externalLocation = external.path
-        //
-        // file.dependencies = _.map(external.deps, function(d) {
-        //   return Module({name: d, path: d, requiredAs: d})
-        // })
-        //
-        // file.stopProcessing = external.stopProcessing === undefined || !external.stopProcessing ? false : true
-      }
 
       if(config.skip && config.skip.indexOf(file.name) > -1) {
         this.push(file)
@@ -62,6 +51,7 @@ module.exports = function(config) {
 
       function end(loc) {
         if(!loc) {
+          debug("Not found:", file.requiredAs)
           self.push(file)
           next()
           return
@@ -71,11 +61,10 @@ module.exports = function(config) {
 
         file.path = loc
         file.base = path.dirname(loc)
-        file.stopProcessing = false
-        file.pending = true
 
-        //TODO to be investigated!!!
-        // file.exists = true
+        file.stopProcessing = false
+        file.exists = true
+        file.pending = true
 
         writer.write(file)
 
