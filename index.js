@@ -38,31 +38,42 @@ module.exports = function(config) {
         return
       }
 
-      var found = false
+      var _desc = getDescriptors()
 
-      async.detect(getDescriptors(), fs.exists, function(p) {
-        if(!p) return
+      if(_.isEmpty(_desc)) {
+        tryFile()
+        return
+      }
+
+      async.detect(_desc, fs.exists, function(p) {
+        if(!p) {
+          tryFile()
+          return
+        }
 
         fs.readFile(p, function(err, content) {
           var main = JSON.parse(content).main
           if(main && !path.extname(main)) main = main + '.js'
-          if(!main) return
 
+          if(!main) {
+            tryFile()
+            return
+          }
           var libPath = path.resolve(path.dirname(p), main)
 
           fs.exists(libPath, function(e) {
             if(e) {
-              found = true
               end(libPath)
               debug("Reading main from descriptor.", libPath)
             } else {
               debug("Main from descriptor does not exists, FIX IT!", p, libPath)
+              tryFile()
             }
           })
         })
       })
-
-      if(!found) async.detect(likelyLocations(), fs.exists, end)
+      
+      function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
 
       function end(loc) {
         if(!loc) {
@@ -85,11 +96,14 @@ module.exports = function(config) {
         next()
       }
 
+      //TODO refactoring needed
       function getDescriptors() {
         return _(descriptors)
                   .map(function(desc) {
                     var  _ref = file.requiredAs
-                    return [ _.map(discoverable, function(d) { path.resolve(d, _ref, desc) })
+                    return [ _.map(discoverable, function(d) { return path.resolve(d, _ref, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(file.base, d, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(file.base, d, _ref, desc) })
                            , path.resolve(file.base, _ref, desc) ]
                   })
                   .flatten()
@@ -97,6 +111,7 @@ module.exports = function(config) {
                   .value()
       }
 
+      //TODO refactoring needed
       function likelyLocations() {
         return _(discoverable)
           .map(function(d, i) {
@@ -104,14 +119,20 @@ module.exports = function(config) {
 
             return  [ path.resolve(d, appendJS(_ref))
                     , path.resolve(d, 'index.js')
+                    , path.resolve(d, 'main.js')
+
                     , path.resolve(d, _ref, appendJS(_ref)) 
                     , path.resolve(d, _ref, 'index.js')
+                    , path.resolve(d, _ref, 'main.js')
+
                     , path.resolve(file.base, d, appendJS(_ref))
                     , path.resolve(file.base, d, 'index.js')
+                    , path.resolve(file.base, d, 'main.js')
+
                     , path.resolve(file.base, d, _ref, appendJS(_ref)) 
                     , path.resolve(file.base, d, _ref, 'index.js')
+                    , path.resolve(file.base, d, _ref, 'main.js')
             ]
-
             function appendJS(name) { return name + '.js' }
           })
           .flatten()
