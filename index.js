@@ -38,20 +38,34 @@ module.exports = function(config) {
         return
       }
 
-      async.detect(likelyLocations(), fs.exists, function(p) {
-        if(_.some(descriptors, function(d) { return (p && p.indexOf(d) > -1) })) {
-          fs.readFile(p, function(err, content) {
-            var main = JSON.parse(content).main
+      var found = false
 
-            if(!path.extname(main)) main = main + '.js' 
+      async.detect(getDescriptors(), fs.exists, function(p) {
+        if(!p) return
 
-            !!main ? end(path.resolve(path.dirname(p), main))
-                   : end(null)
+        fs.readFile(p, function(err, content) {
+          var main = JSON.parse(content).main
+          if(main && !path.extname(main)) main = main + '.js'
+          if(!main) return
+
+          var libPath = path.resolve(path.dirname(p), main)
+
+          fs.exists(libPath, function(e) {
+            if(e) {
+              found = true
+              end(libPath)
+              debug("Reading main from descriptor.", libPath)
+            } else {
+              debug("Main from descriptor does not exists, FIX IT!", p, libPath)
+            }
           })
-        } else end(p)
+        })
       })
 
+      if(!found) async.detect(likelyLocations(), fs.exists, end)
+
       function end(loc) {
+        console.log(loc)
         if(!loc) {
           debug("Not found:", file.requiredAs)
           file.stopProcessing = true
@@ -66,36 +80,38 @@ module.exports = function(config) {
         file.base = path.dirname(loc)
 
         file.stopProcessing = false
-        file.pending = true
 
         writer.write(file)
 
         next()
       }
 
+      function getDescriptors() {
+        return _(descriptors)
+                  .map(function(desc) {
+                    var  _ref = file.requiredAs
+                    return [ _.map(discoverable, function(d) { path.resolve(d, _ref, desc) })
+                           , path.resolve(file.base, _ref, desc) ]
+                  })
+                  .flatten()
+                  .compact()
+                  .value()
+      }
+
       function likelyLocations() {
         return _(discoverable)
-          .map(function(d) {
-            var _descriptors 
-              , _locations
-              , _ref = file.requiredAs
+          .map(function(d, i) {
+            var _ref = file.requiredAs
 
-            _descriptors = _(descriptors)
-              .map(function(desc) {
-                return [ path.resolve(d, _ref, desc)
-                       , path.resolve(file.base, _ref, desc) ]
-              })
-              .flatten()
-              .compact()
-              .value()
-
-            _locations = [ path.resolve(d, appendJS(_ref))
-                         , path.resolve(d, _ref, appendJS(_ref)) 
-                         , path.resolve(file.base, d, appendJS(_ref))
-                         , path.resolve(file.base, d, _ref, appendJS(_ref)) 
+            return  [ path.resolve(d, appendJS(_ref))
+                    , path.resolve(d, 'index.js')
+                    , path.resolve(d, _ref, appendJS(_ref)) 
+                    , path.resolve(d, _ref, 'index.js')
+                    , path.resolve(file.base, d, appendJS(_ref))
+                    , path.resolve(file.base, d, 'index.js')
+                    , path.resolve(file.base, d, _ref, appendJS(_ref)) 
+                    , path.resolve(file.base, d, _ref, 'index.js')
             ]
-
-            return _.compact((_descriptors || []).concat(_locations || []))
 
             function appendJS(name) { return name + '.js' }
           })
