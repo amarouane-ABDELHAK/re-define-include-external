@@ -65,7 +65,6 @@ module.exports = function(config) {
       if(!found) async.detect(likelyLocations(), fs.exists, end)
 
       function end(loc) {
-        console.log(loc)
         if(!loc) {
           debug("Not found:", file.requiredAs)
           file.stopProcessing = true
