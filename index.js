@@ -32,7 +32,9 @@ module.exports = function(config) {
 
       if(!!externalLocation) {
         debug("Reading file from external location:", file.requiredAs, externalLocation)
-        end(externalLocation)
+        fs.exists(externalLocation, function(d) {
+          end(d ? externalLocation : null)
+        })
         return
       }
 
@@ -41,10 +43,10 @@ module.exports = function(config) {
           fs.readFile(p, function(err, content) {
             var main = JSON.parse(content).main
 
-            if(!path.extname(main) && main) main = main + '.js' 
+            if(!path.extname(main)) main = main + '.js' 
 
             !!main ? end(path.resolve(path.dirname(p), main))
-                   : end(p)
+                   : end(null)
           })
         } else end(p)
       })
@@ -52,6 +54,7 @@ module.exports = function(config) {
       function end(loc) {
         if(!loc) {
           debug("Not found:", file.requiredAs)
+          file.stopProcessing = true
           self.push(file)
           next()
           return
