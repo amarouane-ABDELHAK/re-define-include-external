@@ -52,7 +52,10 @@ module.exports = function(config) {
         }
 
         fs.readFile(p, function(err, content) {
-          var main = JSON.parse(content).main
+          var pkg = JSON.parse(content)
+            , main = pkg.main
+            , name = pkg.name
+
           if(main && !path.extname(main)) main = main + '.js'
 
           if(!main) {
@@ -60,6 +63,8 @@ module.exports = function(config) {
             return
           }
           var libPath = path.resolve(path.dirname(p), main)
+
+          file.pkgName = name
 
           fs.exists(libPath, function(e) {
             if(e) {
@@ -78,7 +83,6 @@ module.exports = function(config) {
       function end(loc) {
         if(!loc) {
           debug("Not found:", file.requiredAs)
-          file.stopProcessing = true
           self.push(file)
           next()
           return
@@ -89,10 +93,8 @@ module.exports = function(config) {
         file.path = loc
         file.base = path.dirname(loc)
 
-        file.stopProcessing = false
-
         writer.write(file)
-
+        self.push(file)
         next()
       }
 
