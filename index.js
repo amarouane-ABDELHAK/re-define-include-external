@@ -17,7 +17,7 @@ module.exports = function(config) {
 
       var self = this
         , discoverable = config.discoverable || ['node_modules', 'bower_components']
-        , descriptors = config.descriptors || ['package.json', 'bower.json']
+        , descriptors = config.descriptors || ['bower.json', 'package.json']
         , externalLocation
 
       var external = config.external && config.external[ file.requiredAs ]
@@ -32,6 +32,7 @@ module.exports = function(config) {
 
       if(!!externalLocation) {
         debug("Reading file from external location:", file.requiredAs, externalLocation)
+
         fs.exists(externalLocation, function(d) {
           end(d ? externalLocation : null)
         })
@@ -53,7 +54,7 @@ module.exports = function(config) {
 
         fs.readFile(p, function(err, content) {
           var pkg = JSON.parse(content)
-            , main = pkg.main
+            , main = pkg.browserify || pkg.main
             , name = pkg.name
 
           if(main && !path.extname(main)) main = main + '.js'
@@ -77,7 +78,7 @@ module.exports = function(config) {
           })
         })
       })
-      
+
       function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
 
       function end(loc) {
@@ -103,9 +104,9 @@ module.exports = function(config) {
         return _(descriptors)
                   .map(function(desc) {
                     var  _ref = file.requiredAs
-                    return [ _.map(discoverable, function(d) { return path.resolve(d, _ref, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(file.base, d, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(file.base, d, _ref, desc) })
+                    return [ _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || d, _ref, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || file.base, d, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || file.base, d, _ref, desc) })
                            , path.resolve(file.base, _ref, desc) ]
                   })
                   .flatten()
@@ -118,22 +119,12 @@ module.exports = function(config) {
         return _(discoverable)
           .map(function(d, i) {
             var _ref = file.requiredAs
+              , files = [appendJS(_ref), 'index.js', 'main.js']
 
-            return  [ path.resolve(d, appendJS(_ref))
-                    , path.resolve(d, 'index.js')
-                    , path.resolve(d, 'main.js')
-
-                    , path.resolve(d, _ref, appendJS(_ref)) 
-                    , path.resolve(d, _ref, 'index.js')
-                    , path.resolve(d, _ref, 'main.js')
-
-                    , path.resolve(file.base, d, appendJS(_ref))
-                    , path.resolve(file.base, d, 'index.js')
-                    , path.resolve(file.base, d, 'main.js')
-
-                    , path.resolve(file.base, d, _ref, appendJS(_ref)) 
-                    , path.resolve(file.base, d, _ref, 'index.js')
-                    , path.resolve(file.base, d, _ref, 'main.js')
+            return  [ _.map(files, function(f) { return path.resolve(globalConfig.cwd || d, f) })
+                    , _.map(files, function(f) { return path.resolve(globalConfig.cwd || d, _ref, f) })
+                    , _.map(files, function(f) { return path.resolve(file.base, d, f) })
+                    , _.map(files, function(f) { return path.resolve(file.base, d, _ref, f) })
             ]
             function appendJS(name) { return name + '.js' }
           })
