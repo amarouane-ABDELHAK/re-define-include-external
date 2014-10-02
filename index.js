@@ -34,6 +34,8 @@ module.exports = function(config) {
         var p = path.join(globalConfig.cwd, externalLocation)
         debug("Reading file from external location:", file.requiredAs, p)
 
+        file.pkgName = file.requiredAs
+
         fs.exists(p, function(d) {
           end(d ? p : null)
         })
