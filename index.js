@@ -80,9 +80,7 @@ module.exports = function(config) {
         })
       })
 
-      function tryFile() { 
-        console.log(likelyLocations())
-        async.detect(likelyLocations(), fs.exists, end) }
+      function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
 
       function end(loc) {
         if(!loc) {
