@@ -31,10 +31,11 @@ module.exports = function(config) {
       }
 
       if(!!externalLocation) {
-        debug("Reading file from external location:", file.requiredAs, externalLocation)
+        var p = path.join(globalConfig.cwd, externalLocation)
+        debug("Reading file from external location:", file.requiredAs, p)
 
-        fs.exists(externalLocation, function(d) {
-          end(d ? externalLocation : null)
+        fs.exists(p, function(d) {
+          end(d ? p : null)
         })
         return
       }
@@ -79,7 +80,9 @@ module.exports = function(config) {
         })
       })
 
-      function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
+      function tryFile() { 
+        console.log(likelyLocations())
+        async.detect(likelyLocations(), fs.exists, end) }
 
       function end(loc) {
         if(!loc) {
@@ -104,9 +107,9 @@ module.exports = function(config) {
         return _(descriptors)
                   .map(function(desc) {
                     var  _ref = file.requiredAs
-                    return [ _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || d, _ref, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || file.base, d, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(globalConfig.cwd || file.base, d, _ref, desc) })
+                    return [ _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), d, _ref, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, desc) })
+                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, _ref, desc) })
                            , path.resolve(file.base, _ref, desc) ]
                   })
                   .flatten()
@@ -121,9 +124,9 @@ module.exports = function(config) {
             var _ref = file.requiredAs
               , files = [appendJS(_ref), 'index.js', 'main.js']
 
-            return  [ _.map(files, function(f) { return path.resolve(globalConfig.cwd || d, f) })
-                    , _.map(files, function(f) { return path.resolve(globalConfig.cwd || d, _ref, f) })
-                    , _.map(files, function(f) { return path.resolve(file.base, d, f) })
+            return  [ _.map([appendJS(_ref)], function(f) { return path.resolve(globalConfig.cwd, d, f) })
+                    , _.map(files, function(f) { return path.resolve(globalConfig.cwd, d, _ref, f) })
+                    , _.map([appendJS(_ref)], function(f) { return path.resolve(file.base, d, f) })
                     , _.map(files, function(f) { return path.resolve(file.base, d, _ref, f) })
             ]
             function appendJS(name) { return name + '.js' }
