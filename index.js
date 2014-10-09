@@ -96,14 +96,12 @@ module.exports = function(config) {
         debug("Found it:", file.requiredAs, loc)
 
         var files = ['index.js', 'main.js']
-          , main = _.find(files, function(d) { return loc.indexOf(d) > -1 })
-          , base = loc
-
-        if(main) base = path.dirname(main)
 
         var back = (function() {
           var parts = _.compact(file.requiredAs.split('/')).length
             , back = ''
+
+          if(_.find(files, function(f) { return loc.indexOf(f) > -1 })) parts = parts + 1
 
           parts = parts - 1
 
@@ -118,7 +116,7 @@ module.exports = function(config) {
         })()
 
         file.path = loc
-        file.base = path.join(base, back)
+        file.base = path.join(loc, back)
 
         writer.write(file)
         self.push(file)
