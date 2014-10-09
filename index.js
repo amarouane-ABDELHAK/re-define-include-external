@@ -24,7 +24,7 @@ module.exports = function(config) {
 
       if(_.isString(external)) externalLocation = external
 
-      if(config.skip && config.skip.indexOf(file.name) > -1) {
+      if(config.skip && config.skip.indexOf(file.requiredAs) > -1) {
         this.push(file)
         next()
         return
@@ -66,6 +66,7 @@ module.exports = function(config) {
             tryFile()
             return
           }
+
           var libPath = path.resolve(path.dirname(p), main)
 
           file.pkgName = name
@@ -93,7 +94,6 @@ module.exports = function(config) {
         }
 
         debug("Found it:", file.requiredAs, loc)
-
 
         var files = ['index.js', 'main.js']
           , main = _.find(files, function(d) { return loc.indexOf(d) > -1 })
@@ -131,8 +131,8 @@ module.exports = function(config) {
                   .map(function(desc) {
                     var  _ref = file.requiredAs
                     return [ _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), d, _ref, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, _ref, desc) })
+                           // , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, desc) })
+                           // , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, _ref, desc) })
                            , path.resolve(file.base, _ref, desc) ]
                   })
                   .flatten()

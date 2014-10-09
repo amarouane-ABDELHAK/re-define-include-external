@@ -4,13 +4,17 @@
   "description": "Re-define plugins for attaching and resolving external dependencies",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "grunt test"
   },
   "keywords": [
     "re-define",
     "plugin",
     "include"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/damianbaar/re-define-include-external.git"
+  },
   "author": "Damian Baar <damian.baar@gmail.com> (http://github.com/damianbaar)",
   "license": "MIT",
   "dependencies": {
@@ -19,5 +23,12 @@
     "async": "^0.9.0",
     "re-define-module": "^0.1.1",
     "debug": "^1.0.4"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "mock-fs": "^2.3.1",
+    "mockery": "^1.4.0"
   }
 }
