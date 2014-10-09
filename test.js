@@ -51,6 +51,7 @@ exports['include-external'] = {
 
     var m = createModule('jquery', true)
     m.requiredAs = 'jquery'
+    m.base = './vendor/external/'
 
     convert(m, function(f) {
       test.equal(f.path, 'jquery.js') //unchanged
