@@ -95,28 +95,8 @@ module.exports = function(config) {
 
         debug("Found it:", file.requiredAs, loc)
 
-        var files = ['index.js', 'main.js']
-
-        var back = (function() {
-          var parts = _.compact(file.requiredAs.split('/')).length
-            , back = ''
-
-          if(_.find(files, function(f) { return loc.indexOf(f) > -1 })) parts = parts + 1
-
-          parts = parts - 1
-
-          if(parts > 0) {
-            for(var i = 0; i < parts; i++) {
-              back += '..'
-              if(i !== back - 1) back += '/'
-            }
-          }
-
-          return back
-        })()
-
         file.path = loc
-        file.base = path.join(loc, back)
+        file.base = path.dirname(loc)
 
         writer.write(file)
         self.push(file)
