@@ -38,6 +38,7 @@ module.exports = function(config) {
 
         fs.exists(p, function(d) {
           end(d ? p : null)
+          if(!d) throw new Error('File does not exists ', file.path)
         })
         return
       }
@@ -73,7 +74,7 @@ module.exports = function(config) {
 
           fs.exists(libPath, function(e) {
             if(e) {
-              end(libPath)
+              end(libPath, path.dirname(p))
               debug("Reading main from descriptor.", libPath)
             } else {
               debug("Main from descriptor does not exists, FIX IT!", p, libPath)
@@ -85,7 +86,7 @@ module.exports = function(config) {
 
       function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
 
-      function end(loc) {
+      function end(loc, base) {
         if(!loc) {
           debug("Not found:", file.requiredAs)
           self.push(file)
@@ -96,7 +97,7 @@ module.exports = function(config) {
         debug("Found it:", file.requiredAs, loc)
 
         file.path = loc
-        file.base = path.dirname(loc)
+        file.base = base || path.dirname(loc)
 
         writer.write(file)
         self.push(file)
