@@ -20,6 +20,9 @@ module.exports = function(config) {
         , descriptors = config.descriptors || ['bower.json', 'package.json']
         , externalLocation
 
+      if(_.isEmpty(globalConfig.discoverable))
+        globalConfig.discoverable = discoverable
+
       var external = config.external && config.external[ file.requiredAs ]
 
       if(_.isString(external)) externalLocation = external
@@ -30,7 +33,7 @@ module.exports = function(config) {
         return
       }
 
-      if(!!externalLocation) {
+      if(externalLocation) {
         var p = path.join(globalConfig.cwd, externalLocation)
         debug("Reading file from external location:", file.requiredAs, p)
 
@@ -84,7 +87,7 @@ module.exports = function(config) {
         })
       })
 
-      function tryFile() { async.detect(likelyLocations(), fs.exists, end) }
+      function tryFile() { async.detect(_.uniq(likelyLocations()), fs.exists, end) }
 
       function end(loc, base) {
         if(!loc) {
@@ -98,6 +101,7 @@ module.exports = function(config) {
 
         file.path = loc
         file.base = base || path.dirname(loc)
+        file.external = true
 
         writer.write(file)
         self.push(file)
@@ -124,7 +128,7 @@ module.exports = function(config) {
         return _(discoverable)
           .map(function(d, i) {
             var _ref = file.requiredAs
-              , files = [appendJS(_ref), 'index.js', 'main.js']
+              , files = ['index.js']
 
             return  [ _.map([appendJS(_ref)], function(f) { return path.resolve(globalConfig.cwd, d, f) })
                     , _.map(files, function(f) { return path.resolve(globalConfig.cwd, d, _ref, f) })
