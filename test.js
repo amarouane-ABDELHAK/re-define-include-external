@@ -87,13 +87,13 @@ exports['include-external'] = {
 
     var calls = 0
       , paths = [ 'external_folder/jquery.js'
-                , 'external_folder/jquery/jquery.js'
+                // , 'external_folder/jquery/jquery.js'
                 , 'external_folder/jquery/index.js'
-                , 'external_folder/jquery/main.js'
+                // , 'external_folder/jquery/main.js'
                 , 'vendor/external/external_folder/jquery.js'
-                , 'vendor/external/external_folder/jquery/jquery.js'
+                // , 'vendor/external/external_folder/jquery/jquery.js'
                 , 'vendor/external/external_folder/jquery/index.js'
-                , 'vendor/external/external_folder/jquery/main.js' 
+                // , 'vendor/external/external_folder/jquery/main.js' 
       ]
 
     mockery.registerMock('async', { 

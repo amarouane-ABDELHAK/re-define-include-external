@@ -10,6 +10,7 @@ var findExternal = require('re-define-include-external')({
     external     : {"lodash":"./vendor/lodash.js"}
   , discoverable : ['node_modules', 'bower_component']
   , descriptors  : ['package.json', 'bower.json']
-  , skip         : ['module_name']
+  , skip         : ['module_name'] //do not load these modules and treat as external
+  , exclude      : ['module_name'] //exclude external dep from template
   })
 ```
