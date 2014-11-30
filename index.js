@@ -64,7 +64,7 @@ module.exports = function(config) {
 
         fs.readFile(p, function(err, content) {
           var pkg = JSON.parse(content)
-            , main = pkg.browserify || pkg.main
+            , main = (_.isString(pkg.browserify) && pkg.browserify) || pkg.main
             , name = pkg.name
 
           if(main && !path.extname(main)) main = main + '.js'
