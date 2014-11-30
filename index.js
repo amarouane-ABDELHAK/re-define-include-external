@@ -20,8 +20,11 @@ module.exports = function(config) {
         , descriptors = config.descriptors || ['bower.json', 'package.json']
         , externalLocation
 
-      if(_.isEmpty(globalConfig.discoverable))
+      if(_.isEmpty(globalConfig.discoverable)) 
         globalConfig.discoverable = discoverable
+
+      if(_.isEmpty(globalConfig.exclude)) 
+        globalConfig.exclude = (globalConfig.exclude || []).concat(config.exclude)
 
       var external = config.external && config.external[ file.requiredAs ]
 
