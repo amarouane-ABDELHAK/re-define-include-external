@@ -106,7 +106,6 @@ module.exports = function(config) {
         file.base = base || path.dirname(loc)
         file.descriptor = descriptor
 
-        if(cwd) file.cwd = cwd
         file.external = true
 
         writer.write(file)
