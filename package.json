@@ -1,6 +1,6 @@
 {
   "name": "re-define-include-external",
-  "version": "0.2.12",
+  "version": "0.3.0",
   "description": "Re-define plugins for attaching and resolving external dependencies",
   "main": "index.js",
   "scripts": {
