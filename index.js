@@ -17,7 +17,7 @@ module.exports = function(config) {
 
       var self = this
         , discoverable = config.discoverable || ['node_modules', 'bower_components']
-        , descriptors = config.descriptors || ['bower.json', 'package.json']
+        , descriptors = config.descriptors || ['package.json', 'bower.json']
         , externalLocation
 
       if(_.isEmpty(globalConfig.discoverable)) 
@@ -64,7 +64,7 @@ module.exports = function(config) {
 
         fs.readFile(p, function(err, content) {
           var pkg = JSON.parse(content)
-            , main = (_.isString(pkg.browserify) && pkg.browserify) || pkg.main
+            , main = (_.isString(pkg.browserify) && pkg.browserify) || (_.isString(pkg.browser) && pkg.browser) || pkg.main
             , name = pkg.name
 
           if(main && !path.extname(main)) main = main + '.js'
@@ -80,7 +80,7 @@ module.exports = function(config) {
 
           fs.exists(libPath, function(e) {
             if(e) {
-              end(libPath, path.dirname(p))
+              end(libPath, path.dirname(p), pkg)
               debug("Reading main from descriptor.", libPath)
             } else {
               debug("Main from descriptor does not exists, FIX IT!", p, libPath)
@@ -92,7 +92,7 @@ module.exports = function(config) {
 
       function tryFile() { async.detect(_.uniq(likelyLocations()), fs.exists, end) }
 
-      function end(loc, base) {
+      function end(loc, base, descriptor) {
         if(!loc) {
           debug("Not found:", file.requiredAs)
           self.push(file)
@@ -104,6 +104,9 @@ module.exports = function(config) {
 
         file.path = loc
         file.base = base || path.dirname(loc)
+        file.descriptor = descriptor
+
+        if(cwd) file.cwd = cwd
         file.external = true
 
         writer.write(file)
