@@ -67,6 +67,13 @@ module.exports = function(config) {
             , main = (_.isString(pkg.browserify) && pkg.browserify) || (_.isString(pkg.browser) && pkg.browser) || pkg.main
             , name = pkg.name
 
+          if(_.isArray(main)) {
+            var idx = _.find(main, function(d) { return d.indexOf('.js') > -1 })
+            main = idx > -1 ? main[idx] : null
+
+            if(idx == -1) debug('main field in descriptor file is too complex, most likely you will get an error, from: ', file.path, file.name)
+          }
+
           if(main && !path.extname(main)) main = main + '.js'
 
           if(!main) {
