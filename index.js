@@ -73,7 +73,8 @@ module.exports = function(config) {
 
             if(idx == -1) debug('main field in descriptor file is too complex, most likely you will get an error, from: ', file.path, file.name)
           }
-
+          // var __f = main && fs.statSync(main)
+          // if(__f && __f.isDirectory()) main = path.join(main, 'index.js')
           if(main && !path.extname(main)) main = main + '.js'
 
           if(!main) {
@@ -84,14 +85,21 @@ module.exports = function(config) {
           var libPath = path.resolve(path.dirname(p), main)
 
           file.pkgName = name
-
+          
           fs.exists(libPath, function(e) {
             if(e) {
               end(libPath, path.dirname(p), pkg)
               debug("Reading main from descriptor.", libPath)
             } else {
+              var pointsToDir = fs.existsSync( 
+                                  path.resolve(p)
+                                , main.replace('.js', '/index.js'))
+
               debug("Main from descriptor does not exists, FIX IT!", p, libPath)
-              tryFile()
+
+              pointsToDir 
+                ? end(libPath, path.dirname(p), pkg) 
+                : tryFile()
             }
           })
         })
