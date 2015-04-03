@@ -6,7 +6,16 @@ var _ = require('lodash')
   , Module = require('re-define-module')
   , debug = require('debug')('re-define:custom:include-external')
 
-module.exports = function(config) {
+var transform
+
+module.exports = transform = stream
+
+transform.defaults = {
+  discoverable: ['node_modules', 'bower_components']
+, descriptors: ['package.json', 'bower.json']
+}
+
+function stream(config) {
   return function(globalConfig, writer) {
     return through.obj(function(file, enc, next){
       if(!file.isNull()) {
@@ -15,10 +24,24 @@ module.exports = function(config) {
         return
       }
 
+      config = config || {}
+
       var self = this
-        , discoverable = config.discoverable || ['node_modules', 'bower_components']
-        , descriptors = config.descriptors || ['package.json', 'bower.json']
+        , defaults = transform.defaults
+        , discoverable = config.discoverable || defaults.discoverable
+        , descriptors = config.descriptors || defaults.descriptors
+
+      var requestConfigChange = globalConfig.requestChange || _.noop
+        , checkDefault = function(property) {
+            if(config[property] && join(config[property]) != join(defaults[property]))
+              return config[property]
+
+            function join(arr) { return (arr || []).join() }
+        }
         , externalLocation
+
+      if(checkDefault('discoverable')) requestConfigChange('discoverable', config.discoverable)
+      if(checkDefault('descriptors')) requestConfigChange('descriptors', config.discoverable)
 
       if(_.isEmpty(globalConfig.discoverable)) 
         globalConfig.discoverable = discoverable
@@ -117,8 +140,9 @@ module.exports = function(config) {
         debug("Found it:", file.requiredAs, loc)
 
         file.path = loc
+
         file.base = base || path.dirname(loc)
-        file.descriptor = descriptor
+        file.descriptor = _.omit(descriptor, 'keywords', 'description')
         file.external = true
 
         writer.write(file)
