@@ -13,6 +13,39 @@ module.exports = transform = stream
 transform.defaults = {
   discoverable: ['node_modules', 'bower_components']
 , descriptors: ['package.json', 'bower.json']
+, descriptorLocations: function getDescriptors(file, config) {
+    return _(config.descriptors)
+      .map(function(desc) {
+        var  _ref = file.requiredAs
+        return [ _.map(config.discoverable, function(d) { return path.resolve(path.resolve(config.cwd), d, _ref, desc) })
+               , _.map(config.discoverable, function(d) { return path.resolve(path.resolve(config.cwd), file.base, d, desc) })
+               , _.map(config.discoverable, function(d) { return path.resolve(path.resolve(config.cwd), file.base, d, _ref, desc) })
+               , path.resolve(file.base, _ref, desc) ]
+      })
+      .flatten()
+      .compact()
+      .uniq()
+      .value()
+  }
+, fileLocations: function(file, config) {
+    return _(config.discoverable)
+      .map(function(d, i) {
+        var _ref = file.requiredAs
+          , files = ['index.js']
+
+        return  [ _.map([appendJS(_ref)], function(f) { return path.resolve(config.cwd, d, f) })
+                , _.map(files, function(f) { return path.resolve(config.cwd, d, _ref, f) })
+                , _.map([appendJS(_ref)], function(f) { return path.resolve(file.base, d, f) })
+                , _.map(files, function(f) { return path.resolve(file.base, d, _ref, f) })
+                , _.map([_ref], function(f) { return path.resolve(config.cwd, d, f) })
+                , _.map([_ref], function(f) { return path.resolve(file.base, d, f) })
+        ]
+        function appendJS(name) { return name + '.js' }
+      })
+      .flatten()
+      .uniq()
+      .value()
+  }
 }
 
 function stream(config) {
@@ -29,7 +62,7 @@ function stream(config) {
       var self = this
         , defaults = transform.defaults
         , discoverable = config.discoverable || defaults.discoverable
-        , descriptors = config.descriptors || defaults.descriptors
+        , descriptors = config.descriptors || defaults.descriptors 
 
       var requestConfigChange = globalConfig.requestChange || _.noop
         , checkDefault = function(property) {
@@ -72,7 +105,11 @@ function stream(config) {
         return
       }
 
-      var _desc = getDescriptors()
+      var _config = { cwd: globalConfig.cwd, descriptors: descriptors, discoverable: discoverable}
+        , getFileLocations = _.partial(config.fileLocations || defaults.fileLocations, file, _config)
+        , getDescriptorLocations = _.partial(config.descriptorLocations || defaults.descriptorLocations, file, _config)
+
+      var _desc = getDescriptorLocations()
 
       if(_.isEmpty(_desc)) {
         tryFile()
@@ -127,9 +164,21 @@ function stream(config) {
         })
       })
 
-      function tryFile() { async.detect(_.uniq(likelyLocations()), fs.exists, end) }
+      function tryFile() { 
+        async.detect(getFileLocations(), function(path, cb) {
+          fs.exists(path, function(exists) {
+            if(!exists) return cb(false)
+
+            fs.stat(path, function(err, stats) {
+              if(err) return cb(false) 
+              cb(stats.isDirectory() ? false : true)
+            })
+          })
+        }, end) 
+      }
 
       function end(loc, base, descriptor) {
+        console.log(loc)
         if(!loc) {
           debug("Not found:", file.requiredAs)
           self.push(file)
@@ -148,41 +197,6 @@ function stream(config) {
         writer.write(file)
         self.push(file)
         next()
-      }
-
-      //TODO refactoring needed
-      function getDescriptors() {
-        return _(descriptors)
-                  .map(function(desc) {
-                    var  _ref = file.requiredAs
-                    return [ _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), d, _ref, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, desc) })
-                           , _.map(discoverable, function(d) { return path.resolve(path.resolve(globalConfig.cwd), file.base, d, _ref, desc) })
-                           , path.resolve(file.base, _ref, desc) ]
-                  })
-                  .flatten()
-                  .compact()
-                  .value()
-      }
-
-      //TODO refactoring needed
-      function likelyLocations() {
-        return _(discoverable)
-          .map(function(d, i) {
-            var _ref = file.requiredAs
-              , files = ['index.js']
-
-            return  [ _.map([appendJS(_ref)], function(f) { return path.resolve(globalConfig.cwd, d, f) })
-                    , _.map(files, function(f) { return path.resolve(globalConfig.cwd, d, _ref, f) })
-                    , _.map([appendJS(_ref)], function(f) { return path.resolve(file.base, d, f) })
-                    , _.map(files, function(f) { return path.resolve(file.base, d, _ref, f) })
-                    , _.map([_ref], function(f) { return path.resolve(globalConfig.cwd, d, f) })
-                    , _.map([_ref], function(f) { return path.resolve(file.base, d, f) })
-            ]
-            function appendJS(name) { return name + '.js' }
-          })
-          .flatten()
-          .value()
       }
     })
   }

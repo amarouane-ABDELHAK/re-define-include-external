@@ -42,6 +42,31 @@ exports['include-external'] = {
       test.done()
     })
   },
+
+  'should reject directory and try to go deeper': function(test) {
+
+    transform = requireUncached('./index')
+
+    mock({
+      './external_folder/d3': mock.directory({
+        mode: 0755,
+        items: { 'index.js': 'd3' }
+      })
+    })
+
+    var m = createModule('d3', true)
+    m.requiredAs = 'd3'
+
+    convert(m, function(f) {
+    }, function(f) {
+      test.equal(f.path, 'external_folder/d3/index.js')
+      test.done()
+    }, { fileLocations: function(file, config) {
+      return [ 'external_folder/d3', 'external_folder/d3/index.js' ]
+    }
+    })
+  },
+
   'file does not exists': function(test) {
     transform = requireUncached('./index')
 
