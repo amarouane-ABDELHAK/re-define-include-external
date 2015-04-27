@@ -178,7 +178,6 @@ function stream(config) {
       }
 
       function end(loc, base, descriptor) {
-        console.log(loc)
         if(!loc) {
           debug("Not found:", file.requiredAs)
           self.push(file)
